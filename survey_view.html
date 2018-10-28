@@ -1,0 +1,211 @@
+{% extends 'surveys/survey_view_page_base.html' %}
+
+
+{% block user-page-info %}
+{% load static %}
+<div class="container">
+    <div class="row">
+        <div class="col-xs-4 col-sm-4">
+            <div class="page-title">
+                <b>Survey Response</b>
+            </div>
+        </div>
+        <div class="col-xs-4 col-sm-4">
+            <div class="text-center" id="timer">
+
+            </div>
+        </div>
+        <div class="col-xs-4 col-sm-4">
+            <p>
+                {% if user.is_authenticated %}
+                Account Status:
+                    {% if perms.surveys.add_survey %}
+                    <span class="label label-default">Researcher</span>
+                    {% else %}
+                    <span class="label label-default">Respondent</span>
+                    {% endif %}
+                {% else %}
+                Status:
+                    <span class="label label-default">Anonymous</span>
+                {% endif %}
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock user-page-info %}
+
+{% block alert-bar%}
+{% for message in messages %}
+    <div class="alert {{ message.tags }} alert-dismissible" role="alert">
+        {{ message }}
+    </div>
+{% endfor %}
+{% endblock alert-bar%}
+
+{% block container-items %}
+{% if survey.surveyproperties.published and not request.user == survey.user %}
+    <form action="" id="survey_form" class="form" method="post">
+        {% csrf_token %}
+
+        <div class="well">
+            <div class="form-group">
+                <h1>{{survey.title}}</h1>
+            </div>
+            <hr />
+
+            <div class="form-group">
+                <h2>{{survey.description}}</h2>
+            </div>
+        </div>
+        <hr />
+
+        {% if survey.surveyquestion_set.all %}
+
+        {% for question in survey.surveyquestion_set.all %}
+        <div class="qblock well">
+            <div class="form-group">
+                <label class="question-text">{{question.question_text}}</label>
+            </div>
+            <hr />
+            <div class="cBlock">
+            {% if question.html_name.4 == 't' %}
+            <div class="form-group">
+                <textarea name="choice{{ question.id }}" placeholder="Type in your answer..." required></textarea>
+            </div>
+            {% else %}
+            {% for choice in question.surveychoice_set.all %}
+                <div class="form-group">
+                    {% if question.html_name.4 == 'r' %}
+                    <label class="radio-inline">
+                        <input type="radio" name="choice{{ question.id }}" value="{{ choice.id }}" required/>
+                        {{choice.choice_text}}
+                    </label>
+                    {% else %}
+                    <label class="checkbox-inline">
+                        <input type="checkbox" name="choice{{ question.id }}" value="{{ choice.id }}" />
+                        {{choice.choice_text}} {{note}}
+                    </label>
+                    {% endif %}
+                </div>
+            {% endfor %}
+            {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+        {% endif %}
+        <hr />
+        <div class="well">
+            <div class="text-center" id="timer2">
+
+            </div>
+            {% if not user.is_authenticated %}
+            <div class="submit-block">
+                <div class="form-group">
+                    <input type="radio" id="r_select" name="submit_option" value="r" />
+                    <label for="r_select" id="r_label">Submit by R Code</label>
+                </div>
+                <div class="form-group">
+                    <input type="radio" id="u_select" name="submit_option" value="u" />
+                    <label for="u_select" id="u_label">Register & Submit</label>
+                </div>
+            </div>
+            {% else %}
+            <div class="submit-block">
+                <div class="form-group">
+                    <button class="btn" type="submit"
+                    formaction="{% url 'surveys:user_respond' survey.link_address%}">Submit</button>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </form>
+
+    {% if not user.is_authenticated %}
+    <div id="user_info" class="info" style="display: none">
+        <div class="form-group">
+            <input type="email" class="form-control" name="email" placeholder="Email" required />
+        </div>
+        <div class="form-group">
+            <input type="password" class="form-control" name="password" placeholder="New Password" required />
+        </div>
+        <div class="form-group">
+            <input type="password" class="form-control" name="confirm_password" placeholder="Confirm Password" required />
+        </div>
+        <div class="form-group">
+            <label class="radio-inline">
+                <input type="radio" name="gender" value="F" required/>&nbsp; Female
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="gender" value="M" required/>&nbsp; Male
+            </label>
+        </div>
+        <div class="row">
+            <div class="col-sm-7">
+                <div class="form-group">
+                    <div class="row">
+                        <div class="col-sm-3">
+                            <label for="ages">Age</label>
+                        </div>
+                        <div class="col-sm-9">
+                            <select class="form-control" name="age" id="ages" required />
+                            {% for choice_age in form.age %}
+                                {{ choice_age }}
+                            {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-5">
+                <div class="form-group">
+                    <input type="text" class="form-control" name="location" placeholder="Location" required />
+                    <div>e.g: Tech, Kumasi</div>
+                </div>
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="row">
+                <div class="col-sm-3">
+                    <label for="inst">Institute</label>
+                </div>
+                <div class="col-sm-9">
+                    <select class="form-control" name="institute" id="inst" required />
+                    {% for choice_institute in form.institute %}
+                        {{ choice_institute }}
+                    {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="form-group">
+            <button type="submit" class="btn"
+            formaction="{% url 'surveys:anonymous_respond' survey.link_address%}">Submit</button>
+        </div>
+    </div>
+
+    <div id="r_code" class="code" style="display: none;">
+        <div class="row">
+            <div class="col-xs-8">
+                <div class="form-group">
+                    <input type="text" name="r_code" class="form-control" placeholder="R Code" minlength="4" maxlength="4" required />
+                </div>
+            </div>
+            <div class="col-xs-4">
+                <div class="form-group">
+                    <button type="submit" class="btn"
+                    formaction="{% url 'surveys:anonymous_respond' survey.link_address%}">Submit</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <p id="server_timer" style="display: none;">
+        {{server_timer}}
+    </p>
+{% else %}
+    <div class="form-group">
+        <b>You are not authorized to view this page.</b>
+    </div>
+{% endif %}
+{% endblock container-items %}

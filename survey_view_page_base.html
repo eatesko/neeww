@@ -1,0 +1,137 @@
+{% extends 'users/account_page_base.html' %}
+
+
+{% block page-scripts %}
+
+{% if not user.is_authenticated %}
+{% block submit-block-content-script %}
+<script>
+    $(document).ready(function(){
+        $("#u_select").click(function(){
+            ($("form").find("div.code")).remove();
+            ($("form").find("div.info")).remove();
+            //$("#form1").remove($('#r_code').css("display", "none"));
+            var i = $('#user_info').clone();
+            $("#u_label").after(i.css("display", "block"));
+        });
+        $("#r_select").click(function(){
+            ($("form").find("div.info")).remove();
+            ($("form").find("div.code")).remove();
+            //$("#form1").remove($('#user_info').css("display", "none"));
+            var r = $('#r_code').clone();
+            $("#r_label").after(r.css("display", "block"));
+        });
+    });
+</script>
+{% endblock submit-block-content-script %}
+{% endif %}
+
+<script>
+    $(document).ready(function(){
+        var time = $("#server_timer").html();
+        var countDownDate = new Date(time).getTime();
+
+        var timer = setInterval(function() {
+            var now = new Date().getTime();
+
+            var distance = countDownDate - now;
+
+            var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60)
+            );
+            var seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+            $("#timer").html(minutes + "m " + seconds + "s ");
+            $("#timer2").html(minutes + "m " + seconds + "s ");
+
+            if (distance < 0) {
+                clearInterval(timer);
+                $("#timer").html("Ready");
+                $("#timer2").css("display", "none");
+                $(".submit-block").css("display", "block");
+            }
+        }, 0);
+    });
+</script>
+{% endblock page-scripts %}
+
+{% block page-styles %}
+<style type="text/css">
+    .label {
+        font-size: 12px;
+    }
+    .question-text {
+    	font-size: 20px;
+    }
+    textarea {
+        max-width: 100%;
+        min-width: 100%;
+        max-height: 100%;
+        min-height: 100%;
+        resize: none;
+    }
+    .media-object {
+        width: 25px;
+    }
+    .checkbox-inline, .radio-inline {
+    	font-size: 18px;
+    }
+    .submit-block {
+        display: none;
+    }
+    @media screen and (max-width: 767px) {
+        .page-title {
+            font-size: 14px;
+            padding-top: 5px;
+        }
+        .submit-block {
+            padding-left: 10px;
+            padding-right: 10px;
+        }
+    }
+    @media screen and (min-width: 768px) {
+        .page-title {
+            font-size: 20px;
+        }
+        .well, .respond-btn {
+            margin-left: 50px;
+            margin-right: 50px;
+        }
+        .submit-block {
+            padding-left: 100px;
+            padding-right: 400px;
+        }
+
+        @media screen and (max-width: 1024px){
+            .submit-block {
+                padding-left: 100px;
+                padding-right: 200px;
+            }
+        }
+        @media screen and (max-width: 840px){
+            .submit-block {
+                padding-left: 100px;
+                padding-right: 90px;
+            }
+        }
+        @media screen and (max-width: 768px) {
+            .page-title {
+                font-size: 18px;
+            }
+            .submit-block {
+                padding-left: 100px;
+                padding-right: 100px;
+            }
+        }
+    }
+</style>
+{% endblock page-styles %}
+
+{% block user-page-info %}
+
+{% endblock user-page-info %}
+
+
+
+{% block container-items %}
+
+{% endblock container-items %}

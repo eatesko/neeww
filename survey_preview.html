@@ -1,0 +1,129 @@
+{% extends 'surveys/survey_view_page_base.html' %}
+
+{% block user-page-info %}
+{% load static %}
+<div class="container">
+    <div class="row">
+        <div class="col-xs-2 col-sm-2">
+            <div class="page-title">
+                <b>Survey Preview</b>
+            </div>
+        </div>
+        <div class="col-xs-2 col-sm-1 icons">
+            <div class="media">
+                <div class="media-left">
+                    <form action="{% url 'surveys:survey_update' survey.link_address %}" method="get">
+                        <abbr title="Edit Survey">
+                            <input src="{% static 'users/img/survey_page.png' %}" name="submit"
+                            style="width: 23px;" class="media-object" alt="Edit Survey Link" type="image">
+                        </abbr>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-xs-2 col-sm-4">
+            <div class="text-center" id="timer">
+
+            </div>
+        </div>
+        <div class="col-xs-2 col-sm-1">
+            <div class="media">
+                <div class="media-left">
+                    <form action="{% url 'surveys:survey_properties' survey.link_address %}" method="get">
+                        <abbr title="Survey Properties">
+                            <input src="{% static 'users/img/properties-icon.png' %}" name="submit"
+                            style="width: 23px;" class="media-object" alt="Survey Properties Link" type="image">
+                        </abbr>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-xs-4 col-sm-4">
+            <p>
+                Account Status:
+                {% if perms.surveys.add_survey %}
+                    <span class="label label-default">Researcher</span>
+                {% else %}
+                    <span class="label label-default">Respondent</span>
+                {% endif %}
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock user-page-info %}
+
+
+{% block container-items %}
+{% if request.user == survey.user %}
+    <form action="{% url 'surveys:anonymous_respond' survey.link_address%}" id="survey_form"
+     class="form" method="post">
+        {% csrf_token %}
+
+        <div class="well">
+            <div class="form-group">
+                <h1>{{survey.title}}</h1>
+            </div>
+            <hr />
+
+            <div class="form-group">
+                <h2>{{survey.description}}</h2>
+            </div>
+        </div>
+        <hr />
+
+        {% if survey.surveyquestion_set.all %}
+
+        {% for question in survey.surveyquestion_set.all %}
+        <div class="qblock well">
+            <div class="form-group">
+                <label class="question-text">{{question.question_text}}</label>
+            </div>
+            <hr />
+            <div class="cBlock">
+            {% if question.html_name.4 == 't' %}
+            <div class="form-group">
+                <textarea name="choice{{ question.id }}" placeholder="Type in your answer..." required></textarea>
+            </div>
+            {% else %}
+            {% for choice in question.surveychoice_set.all %}
+                <div class="form-group">
+                    {% if question.html_name.4 == 'r' %}
+                    <label class="radio-inline">
+                        <input type="radio" name="choice{{ question.id }}" value="{{ choice.id }}" required/>
+                        {{choice.choice_text}}
+                    </label>
+                    {% else %}
+                    <label class="checkbox-inline">
+                        <input type="checkbox" name="choice{{ question.id }}" value="{{ choice.id }}" />
+                        {{choice.choice_text}}
+                    </label>
+                    {% endif %}
+                </div>
+            {% endfor %}
+            {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+        {% endif %}
+        <hr />
+        <div class="well">
+            <div class="text-center" id="timer2">
+
+            </div>
+            <div class="submit-block">
+                <div class="form-group">
+                    <button class="btn" type="submit" disabled>Submit</button>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <p id="server_timer" style="display: none;">
+        {{server_timer}}
+    </p>
+{% else %}
+    <div class="form-group">
+        <b>You are not authorized to view this page.</b>
+    </div>
+{% endif %}
+{% endblock container-items %}

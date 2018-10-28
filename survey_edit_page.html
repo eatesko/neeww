@@ -1,0 +1,517 @@
+{% extends 'users/account_page_base.html' %}
+
+
+{% block page-scripts %}
+    <script>
+        $(document).ready(function(){
+            $(document).on('click', 'button#addQ', function(){
+                var qBlock = $('#new_question').clone();
+                qBlock.attr('id', '');
+                qBlock.find('input.quest').attr('class', 'question form-control');
+
+                $($("form").find('div.commands')).before(
+                    qBlock.css("display", "block"));
+
+                updateInputAttributes();
+            });
+
+            $(document).on('click', 'button.addC', function(){
+                var newChoice = $('#new_choice').clone();
+                newChoice.attr('id', '');
+                newChoice.find('input').attr('class', 'choice form-control');
+                var questionName = $(this).parents('div.qblock').children(
+                    'div.row').find('.question').attr('name');
+                var currentQuestionNumber = questionName[2];
+                var numberOfChoices = $($(this).parent()).find('.choice').length;
+                newChoice.find('input').attr(
+                    'name', `p_${currentQuestionNumber}_r${numberOfChoices+1}`);
+                newChoice.find('input').attr(
+                    'placeholder', `Choice${numberOfChoices+1}`);
+                $($(this).parent()).find('button.addC').parent('span.form-group').before(
+                newChoice.css("display", "block"));
+
+                updateInputAttributes();
+            });
+
+            $(document).on('click', 'a.delC', function(){
+                $(this).parents('.form-group').remove();
+                updateInputAttributes();
+            });
+
+            $(document).on('click', 'button.delQ', function(){
+                $(this).parents('div.qblock').remove();
+
+                updateInputAttributes();
+            });
+
+            $(document).on('click', 'select.choice_type', function(){
+                type = $(this).val();
+
+                $(document).on('change', 'select.choice_type', function(){
+                    if($(this).val() === 't'){
+                      $(this).parents('div.qblock').find('.cBlock').remove();
+                      $(this).parents('div.qblock').find('.cBlock2').remove();
+
+                      var textBChoice = $('#new_text_ans').clone();
+                      textBChoice.attr('id', '');
+                      textBChoice.find('input').attr('class', 'choice form-control');
+
+                      $(this).parents('div.qblock').find('.row1').after(
+                        textBChoice.css("display", "block"));
+                    }
+                    else{
+                        if(type === 't'){
+                            $(this).parents('div.qblock').find('.cBlock2').remove();
+                            $(this).parents('div.qblock').find('.cBlock').remove();
+
+                            var choiceBlock = $('#default_cBlock').clone();
+                            choiceBlock.attr('id', '');
+
+                            $(this).parents('div.qblock').find('.row1').after(
+                              choiceBlock.css("display", "block"));
+                          }
+                        }
+                    updateInputAttributes();
+                });
+            });
+
+
+            function updateInputAttributes(){
+                $.each($('.question'), function(qIndex, qValue){
+                    $(qValue).attr('placeholder', `Question${qIndex+1}`);
+                    if ($(this).parents('div.row').find('.choice_type').val() === 'c'){
+                        $(qValue).attr('name', `p_${qIndex+1}_c0`);
+                        $.each($(this).parents('div.row').next().find('.choice'),
+                         function(cIndex, cValue){
+                             $(cValue).attr('name', `p_${qIndex+1}_c${cIndex+1}`);
+                             $(cValue).attr('placeholder', `Choice${cIndex+1}`);
+                        });
+                    }
+                    else if ($(this).parents('div.row').find('.choice_type').val() === 'r'){
+                        $(qValue).attr('name', `p_${qIndex+1}_r0`);
+
+                        $.each($(this).parents('div.row').next().find('.choice'),
+                         function(cIndex, cValue){
+                             $(cValue).attr('name', `p_${qIndex+1}_r${cIndex+1}`);
+                             $(cValue).attr('placeholder', `Choice${cIndex+1}`);
+                        });
+                    }
+                    else if ($(this).parents('div.row').find('.choice_type').val() === 't'){
+                        $(qValue).attr('name', `p_${qIndex+1}_t0`);
+
+                        $.each($(this).parents('div.row').next().find('.choice'),
+                         function(cIndex, cValue){
+                             $(cValue).attr('placeholder', `Answer...`);
+                        });
+                    }
+                });
+            }
+        });
+    </script>
+{% endblock page-scripts %}
+
+{% block page-styles %}
+<style type="text/css">
+    .label {
+        font-size: 12px;
+    }
+    .media-object {
+        width: 25px;
+    }
+    .delC {
+        padding: 5px;
+    }
+    .close {
+        margin-right: 100%;
+    }
+
+    @media screen and (max-width: 767px) {
+        .page-title {
+            font-size: 14px;
+            padding-top: 5px;
+        }
+        .choice_type {
+            width: 250px;
+        }
+        .choice {
+            width: 240px;
+        }
+
+        @media screen and (max-width: 340px) {
+            .choice {
+                width: 210px;
+            }
+        }
+    }
+
+    @media screen and (min-width: 768px) {
+        .page-title {
+            font-size: 20px;
+        }
+        .well, .commands {
+            margin-left: 50px;
+            margin-right: 50px;
+        }
+        .choice {
+            width: 450px;
+        }
+
+        @media screen and (max-width: 1024px){
+            .choice {
+                width: 350px;
+            }
+        }
+        @media screen and (max-width: 840px){
+            .choice {
+                width: 250px;
+            }
+        }
+        @media screen and (max-width: 768px) {
+            .page-title {
+                font-size: 18px;
+            }
+            .choice {
+                width: 250px;
+            }
+        }
+    }
+</style>
+{% endblock page-styles %}
+
+{% block user-page-info %}
+{% load static %}
+
+<div class="container">
+    <div class="row">
+        <div class="col-xs-2 col-sm-3">
+            <div class="page-title">
+                <b>Edit Survey</b>
+            </div>
+        </div>
+        <div class="col-xs-2 col-sm-1 icons">
+            <div class="media">
+                <div class="media-left">
+                    <form action="{% url 'surveys:survey_properties' survey.link_address %}" method="get">
+                        <abbr title="Survey Properties">
+                        {% if request.user == survey.user %}
+                            <input src="{% static 'users/img/properties-icon.png' %}" name="submit" class="media-object"
+                            alt="Survey Properties" type="image">
+                        {% else %}
+                            <input src="{% static 'users/img/properties-icon.png' %}" name="submit" class="media-object"
+                            alt="Survey Properties" type="image" disabled>
+                        {% endif %}
+                        </abbr>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-xs-2 col-sm-1">
+            <div class="media">
+                <div class="media-left">
+                    <abbr title="Save">
+                    {% if not survey.surveyproperties.published and request.user == survey.user %}
+                        <input src="{% static 'users/img/save.png' %}" name="" class="media-object"
+                        alt="Save" type="image" form="survey_form">
+                    {% else %}
+                        <input src="{% static 'users/img/save.png' %}" class="media-object"
+                        alt="Save" type="image" form="survey_form" disabled>
+                    {% endif %}
+                    </abbr>
+                </div>
+            </div>
+        </div>
+        <div class="col-xs-2 col-sm-2">
+            <div class="media">
+                <div class="media-left">
+                    <abbr title="Preview">
+                        <form action="{% url 'surveys:preview' survey.link_address %}" method="get">
+                        {% if request.user == survey.user %}
+                            <input src="{% static 'users/img/preview.png' %}" name="submit" class="media-object"
+                            style="width: 23px;" alt="Preview" type="image">
+                        {% else %}
+                            <input src="{% static 'users/img/preview.png' %}" name="submit"
+                            class="media-object disable" style="width: 23px;" alt="Preview" type="image" disabled>
+                        {% endif %}
+                        </form>
+                    </abbr>
+                </div>
+            </div>
+        </div>
+        <div class="col-xs-4 col-sm-5">
+            <p>
+                Account Status:
+                {% if perms.surveys.add_survey %}
+                    <span class="label label-default">Researcher</span>
+                {% else %}
+                    <span class="label label-default">Respondent</span>
+                {% endif %}
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock user-page-info %}
+
+{% block alert-bar%}
+{% for message in messages %}
+    <div class="alert {{ message.tags }} alert-dismissible" role="alert">
+        {{ message }}
+    </div>
+{% endfor %}
+{% endblock alert-bar%}
+
+{% block container-items %}
+{% if request.user == survey.user %}
+    <form action="{% url 'surveys:survey_update' survey.link_address%}" id="survey_form"
+     class="form" method="post">
+        {% csrf_token %}
+
+        <div class="well">
+            {% if not survey.surveyproperties.published %}
+            <div class="form-group">
+                <input type="text" name="title" placeholder="Survey Title"
+                value="{{survey.title}}" class="form-control" required />
+            </div>
+            {% else %}
+            <div class="form-group">
+                <h1>{{survey.title}}</h1>
+            </div>
+            {% endif %}
+            <hr />
+
+            {% if not survey.surveyproperties.published %}
+            <div class="form-group">
+                <input type="text" name="description"
+                placeholder="Survey Description" value="{{survey.description}}"
+                class="form-control" required />
+            </div>
+            {% else %}
+            <div class="form-group">
+                <h2>{{survey.description}}</h2>
+            </div>
+            {% endif %}
+        </div>
+        <hr />
+
+        {% if survey.surveyquestion_set.all %}
+
+        {% for question in survey.surveyquestion_set.all %}
+        <div class="qblock well">
+        {% if not survey.surveyproperties.published %}
+            <div class="row row1">
+                <div class="col-sm-8">
+                    <div class="form-group">
+                        <input type="text" name="{{question.html_name}}"
+                        value="{{question.question_text}}" class="question form-control"
+                        placeholder="Question{{forloop.counter}}" required />
+                    </div>
+                </div>
+                <div class="col-sm-4">
+                    <select class="choice_type form-control">
+                        <option value="r">Multiple Choice</option>
+                        <option value="c"
+                        {% if question.html_name.4 == 'c' %}
+                        selected{% endif %}>CheckBoxes</option>
+                        <hr />
+                        <option value="t"
+                        {% if question.html_name.4 == 't' %}
+                        selected{% endif %}>Text Answer</option>
+                    </select>
+                </div>
+            </div>
+        {% else %}
+            <div class="form-group">
+                {{question.question_text}}
+            </div>
+        {% endif %}
+
+          {% if not question.html_name.4 == 't' %}
+            <div class="cBlock">
+            {% for choice in question.surveychoice_set.all %}
+
+            {% if not survey.surveyproperties.published %}
+                <div class="form-group">
+                    <div class="row">
+                        <div class="col-xs-10 col-sm-7">
+                            <input type="text" name="{{choice.html_name}}"
+                            value="{{choice.choice_text}}" class="choice form-control"
+                            placeholder="Choice{{ forloop.counter }}" required />
+                        </div>
+                        <div class="col-xs-2 col-sm-5">
+                            <a class="delC close" aria-label="close" role="button">&times;</a>
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <div class="form-group">
+                    <h4>{{choice.choice_text}}</h4>
+                </div>
+            {% endif %}
+
+            {% endfor %}
+
+            {% if not survey.surveyproperties.published %}
+                <span class="form-group">
+                    <button class="addC btn" type="button">Add Choice</button>
+                </span>
+            {% endif %}
+            </div>
+
+            {% else %}
+
+            <div class="cBlock2">
+                <div class="form-group">
+                    <input type="text" placeholder="Answer..."
+                    class="choice form-control" disabled />
+                </div>
+            </div>
+
+            {% endif %}
+
+            {% if not survey.surveyproperties.published %}
+            <div class="row">
+                <div class="col-sm-4 col-sm-offset-8">
+                    <div class="form-group">
+                        <button class="delQ btn btn-danger" type="button">Delete Question</button>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+
+        {% else %}
+
+        <div class="qblock well">
+            <div class="row row1">
+                <div class="col-sm-8">
+                    <div class="form-group">
+                        <input type="text" name="p_1_r0" class="question form-control"
+                        placeholder="Question1" required />
+                    </div>
+                </div>
+                <div class="col-sm-4">
+                    <select class="choice_type form-control">
+                        <option value="r">Multiple Choice</option>
+                        <option value="c">CheckBoxes</option>
+                        <hr />
+                        <option value="t">Text Answer</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="cBlock">
+                <div class="form-group">
+                    <input type="text" name="p_1_r1" class="choice form-control"
+                    placeholder="Choice1" required />
+                </div>
+                <div class="form-group">
+                    <input type="text" name="p_1_r2" class="choice form-control"
+                    placeholder="Choice2" required />
+                </div>
+                <span class="form-group">
+                    <button class="addC btn" type="button">Add Choice</button>
+                </span>
+            </div>
+            <div class="row">
+                <div class="col-sm-4 col-sm-offset-8">
+                    <div class="form-group">
+                        <button class="delQ btn btn-danger" type="button">Delete Question</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="commands">
+        {% if not survey.surveyproperties.published %}
+            <div class="form-group">
+                <button class="btn" id="addQ" type="button">Add Question</button>
+            </div>
+        {% endif %}
+        </div>
+    </form>
+
+    <div class="qblock well" id="new_question"
+    style="display:none;">
+        <div class="row row1">
+            <div class="col-sm-8">
+                <div class="form-group">
+                    <input type="text" class="quest" required />
+                </div>
+            </div>
+            <div class="col-sm-4">
+                <select class="choice_type form-control">
+                    <option value="r">Multiple Choice</option>
+                    <option value="c">CheckBoxes</option>
+                    <hr />
+                    <option value="t">Text Answer</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="cBlock">
+            <div class="form-group">
+                <input type="text" class="choice form-control" required />
+            </div>
+            <div class="form-group">
+                <input type="text" class="choice form-control" required />
+            </div>
+            <span class="form-group">
+                <button class="addC btn" type="button">Add Choice</button>
+            </span>
+        </div>
+        <div class="row">
+            <div class="col-sm-4 col-sm-offset-8">
+                <div class="form-group">
+                    <button class="delQ btn btn-danger" type="button">Delete Question</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="cBlock" id="default_cBlock" style="display: none;">
+        <div class="form-group">
+            <input type="text" class="choice form-control" required />
+        </div>
+        <div class="form-group">
+            <input type="text" class="choice form-control" required />
+        </div>
+        <span class="form-group">
+            <button class="addC btn" type="button">Add Choice</button>
+        </span>
+    </div>
+
+    <div class="cBlock2" id="new_text_ans" style="display: none;">
+      <div class="form-group">
+          <input type="text" placeholder="Answer..." disabled />
+      </div>
+    </div>
+
+    <div class="form-group" id="new_choice" style="display: none;">
+        <div class="row">
+            <div class="col-xs-10 col-sm-7">
+                <input type="text" required />
+            </div>
+            <div class="col-xs-2 col-sm-5">
+                <a class="delC close" aria-label="close" role="button">&times;</a>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="form-group" id="new_other" style="display: none;">
+        <div class="row">
+            <div class="col-xs-10 col-sm-7">
+                <input type="text" required />
+            </div>
+            <div class="col-xs-2 col-sm-5">
+                <a class="delO close" aria-label="close" role="button">&times;</a>
+            </div>
+        </div>
+    </div>
+{% else%}
+    <div class="form-group">
+        <b>You are not authorized to view this page.</b>
+    </div>
+{% endif %}
+{% endblock container-items %}
